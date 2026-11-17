@@ -1,0 +1,69 @@
+name: Application release
+
+# Qualification copy of the Continuum release caller. It is pinned to the exact
+# audited Continuum commit that supplies the reusable workflow, never to
+# `main`. Product build/sign/verify commands live in .github/release-hooks.json.
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact commit to release. Empty uses the dispatched ref's commit.
+        required: false
+        type: string
+      version:
+        description: Explicit version. Empty uses the configured version source.
+        required: false
+        type: string
+      version_file:
+        description: Repository-relative file carrying the version
+        required: false
+        type: string
+      tag:
+        description: Tag being released, when this dispatch is about a tag
+        required: false
+        type: string
+      event:
+        description: Release event to model
+        required: false
+        default: workflow-dispatch
+        type: choice
+        options:
+          - workflow-dispatch
+          - push
+          - tag-push
+          - release-pr-merged
+          - scheduled
+      channel:
+        description: Release channel
+        required: false
+        default: default
+        type: string
+      hook_secret_env:
+        description: Secret environment names forwarded to hook commands
+        required: false
+        type: string
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  call:
+    uses: kodmial/continuum/.github/workflows/continuum-release.yml@c4ed841a756707b46dc0a30a8ee1a3a61130bd99
+    secrets: inherit
+    with:
+      source_sha: "${{ inputs.source_sha || github.sha }}"
+      event: "${{ inputs.event || (github.ref_type == 'tag' && 'tag-push' || (github.event_name == 'push' && 'push' || 'workflow-dispatch')) }}"
+      version: "${{ inputs.version }}"
+      version_file: "${{ inputs.version_file }}"
+      tag: "${{ inputs.tag || (github.ref_type == 'tag' && github.ref_name || '') }}"
+      channel: "${{ inputs.channel || 'default' }}"
+      hook_secret_env: "${{ inputs.hook_secret_env }}"
+      default_branch: "main"
+      continuum_ref: "c4ed841a756707b46dc0a30a8ee1a3a61130bd99"

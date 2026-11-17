@@ -1,0 +1,1 @@
+hello from the Continuum release qualification consumer (pre-release)
