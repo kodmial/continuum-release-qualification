@@ -1,0 +1,43 @@
+{
+  "schema": "continuum.release-hooks/v1",
+  "targets": [
+    {
+      "id": "linux-x64",
+      "platform": "linux",
+      "runner": "ubuntu-latest",
+      "build": {"command": ["bash", ".github/release/build-linux.sh"]},
+      "sign": {"command": ["bash", ".github/release/sign-linux.sh"], "identity": "qualification-ci"},
+      "verify": {"command": ["bash", ".github/release/verify.sh"], "identity": "qualification-ci"},
+      "artifacts": [
+        {
+          "name": "hello-{version}-linux-x64.tar.gz",
+          "path": "dist/hello-{version}-linux-x64.tar.gz",
+          "type": "archive",
+          "classifier": "linux-x64",
+          "platform": "linux",
+          "arch": "x64"
+        }
+      ]
+    },
+    {
+      "id": "windows-x64",
+      "platform": "windows",
+      "runner": "windows-latest",
+      "build": {"command": ["pwsh", "-NoProfile", "-File", ".github/release/build-windows.ps1"]},
+      "sign": {"command": ["pwsh", "-NoProfile", "-File", ".github/release/sign-windows.ps1"], "identity": "qualification-ci"},
+      "verify": {"command": ["pwsh", "-NoProfile", "-File", ".github/release/verify-windows.ps1"], "identity": "qualification-ci"},
+      "artifacts": [
+        {
+          "name": "hello-{version}-windows-x64.zip",
+          "path": "dist/hello-{version}-windows-x64.zip",
+          "type": "archive",
+          "classifier": "windows-x64",
+          "platform": "windows",
+          "arch": "x64"
+        }
+      ]
+    }
+  ],
+  "publishers": {},
+  "syncs": {}
+}
