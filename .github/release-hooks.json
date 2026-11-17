@@ -38,6 +38,10 @@
       ]
     }
   ],
-  "publishers": {},
+  "publishers": {
+    "qualification-record": {
+      "command": ["bash", ".github/release/publish-downstream.sh"]
+    }
+  },
   "syncs": {}
 }
