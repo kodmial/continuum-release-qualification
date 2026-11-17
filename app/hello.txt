@@ -1,1 +1,2 @@
 hello from the Continuum release qualification consumer at 0.1.1
+qualification source change for 0.1.2
