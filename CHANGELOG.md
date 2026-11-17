@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.6] - 2026-11-17
+
+- Final qualification release on the audited engine snapshot: one exact commit,
+  two deterministic targets, sign/verify, complete digest-checked draft,
+  publication, and one downstream publisher record.
+- Duplicate tag and dispatch events are green already-published no-ops with no
+  second tag, release, asset, or publisher call.
+- A refused plan now prints the failing stage and its reason in the job log.
+
 ## [0.1.5] - 2026-11-17
 
 - Final qualification release on the receipt-reconciliation engine: published
