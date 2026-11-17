@@ -55,7 +55,7 @@ permissions:
 
 jobs:
   call:
-    uses: kodmial/continuum/.github/workflows/continuum-release.yml@c4ed841a756707b46dc0a30a8ee1a3a61130bd99
+    uses: kodmial/continuum-release-qualification-workflow/.github/workflows/continuum-release.yml@8cd5b9f19ef37c87619570a92820accfdaa591d6
     secrets: inherit
     with:
       source_sha: "${{ inputs.source_sha || github.sha }}"
