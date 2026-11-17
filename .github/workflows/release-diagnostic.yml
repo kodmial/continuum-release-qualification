@@ -4,7 +4,9 @@ name: Release diagnostic
 # workflow runs, but without --quiet, so a failing hook explains itself.
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - diag-engine
 
 permissions:
   contents: read
