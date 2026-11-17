@@ -1,0 +1,112 @@
+name: Release diagnostic
+
+# Temporary, qualification-only probe: run the exact build phase the reusable
+# workflow runs, but without --quiet, so a failing hook explains itself.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout consumer
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Checkout the pinned engine
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: kodmial/continuum
+          ref: c4ed841a756707b46dc0a30a8ee1a3a61130bd99
+          path: continuum
+          fetch-depth: 1
+
+      - name: Probe the toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "python3: $(command -v python3)"
+          python3 --version
+          echo "pwsh: $(command -v pwsh)"
+          pwsh -NoProfile -Command '$PSVersionTable.PSVersion.ToString(); $env:PSModulePath'
+          echo "PYTHONPATH check:"
+          export PYTHONPATH="$GITHUB_WORKSPACE/continuum/src$(python3 -c 'import os; print(os.pathsep)')$GITHUB_WORKSPACE/continuum"
+          python3 -c "import continuum.release, sys; print('import ok', continuum.release.__file__)"
+
+      - name: Run the windows build phase verbosely
+        shell: bash
+        env:
+          RELEASE_EVENT: push
+          RELEASE_SHA: 448c20fdddfa1a2ab7af00ad4a3cde91dbab9e74
+          RELEASE_VERSION: 0.1.1
+          RELEASE_TAG: v0.1.1
+          RELEASE_VERSION_FILE: .release-version
+          RELEASE_VERSION_PATTERN: '\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?'
+          RELEASE_TAG_PREFIX: v
+          RELEASE_CHANNEL: default
+          RELEASE_HOOKS: ""
+          RELEASE_NOTES_FILE: CHANGELOG.md
+          RELEASE_PR: ""
+          RELEASE_DEFAULT_BRANCH: main
+          TARGET_ID: windows-x64
+          HOOK_SECRET_ENV: ""
+        run: |
+          set -euo pipefail
+          export PYTHONPATH="$GITHUB_WORKSPACE/continuum/src$(python3 -c 'import os; print(os.pathsep)')$GITHUB_WORKSPACE/continuum"
+          mkdir -p evidence
+          changed="$RUNNER_TEMP/changed-files.txt"
+          if git rev-parse "$RELEASE_SHA^" >/dev/null 2>&1; then
+            git diff --name-only "$RELEASE_SHA^" "$RELEASE_SHA" > "$changed"
+          else
+            git ls-tree -r --name-only "$RELEASE_SHA" > "$changed"
+          fi
+          cat "$changed"
+          commit_message="$(git log -1 --format=%B "$RELEASE_SHA")"
+          args=(
+            build
+            --config "$GITHUB_WORKSPACE/.continuum.yml"
+            --workdir "$GITHUB_WORKSPACE"
+            --event "$RELEASE_EVENT"
+            --repository "$GITHUB_REPOSITORY"
+            --sha "$RELEASE_SHA"
+            --branch "$RELEASE_DEFAULT_BRANCH"
+            --default-branch "$RELEASE_DEFAULT_BRANCH"
+            --changed-files-file "$changed"
+            --commit-message "$commit_message"
+            --tag-prefix "$RELEASE_TAG_PREFIX"
+            --channel "$RELEASE_CHANNEL"
+            --notes-file "$RELEASE_NOTES_FILE"
+            --target "$TARGET_ID"
+            --receipt-dir "$RUNNER_TEMP/build-receipts"
+            --bundle-out bundle
+            --json evidence/build.json
+            --summary "$GITHUB_STEP_SUMMARY"
+          )
+          args+=(--version "$RELEASE_VERSION" --tag "$RELEASE_TAG" --version-file "$RELEASE_VERSION_FILE")
+          set +e
+          python3 -m continuum.release "${args[@]}"
+          status=$?
+          set -e
+          echo "engine exit status: $status"
+          echo "--- evidence/build.json ---"
+          cat evidence/build.json || true
+          exit "$status"
+
+      - name: Upload diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-diagnostic-evidence
+          path: |
+            evidence/
+            bundle/
+            dist/
+          if-no-files-found: warn
+          retention-days: 7
