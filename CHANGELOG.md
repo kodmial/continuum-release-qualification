@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.5] - 2026-11-17
+
+- Final qualification release on the receipt-reconciliation engine: published
+  from one exact commit with two deterministic targets, sign/verify, a complete
+  digest-checked draft, publication and one downstream publisher record.
+- Duplicate tag and dispatch events reconcile the published receipt with the
+  rebuild, report an already-published no-op, and add no second tag, release or
+  publisher call.
+
 ## [0.1.4] - 2026-11-17
 
 - Qualification release on the final engine: one exact source commit, two

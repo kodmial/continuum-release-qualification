@@ -55,7 +55,7 @@ permissions:
 
 jobs:
   call:
-    uses: kodmial/continuum-release-qualification-workflow/.github/workflows/continuum-release.yml@7eb4fd973c6529760557eb455eba2be703c2899e
+    uses: kodmial/continuum-release-qualification-workflow/.github/workflows/continuum-release.yml@20174f3b2527f15aca3ec1a335a7cd54e22cca82
     secrets: inherit
     with:
       source_sha: "${{ inputs.source_sha || github.sha }}"
@@ -67,4 +67,4 @@ jobs:
       hook_secret_env: "${{ inputs.hook_secret_env }}"
       default_branch: "main"
       continuum_engine_repository: "kodmial/continuum-release-qualification-workflow"
-      continuum_ref: "7eb4fd973c6529760557eb455eba2be703c2899e"
+      continuum_ref: "20174f3b2527f15aca3ec1a335a7cd54e22cca82"
